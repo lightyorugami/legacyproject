@@ -1,6 +1,6 @@
 # DeceitFix.dll: features
 
-Current version: **v1.80**
+Current version: **v1.81**
 
 `LegacyProject\DeceitFix.dll` holds the fixes and features of Legacy Project. It is loaded by the startup DLL (`dinput8.dll`) when the game starts and works **in memory only**: no file of the game is modified on disk. Before patching anything, it checks that the game files are exactly the legacy version (`Game.dll` 5.2.9): on any other version it changes nothing.
 
@@ -78,3 +78,8 @@ The first section lists everything the DLL does as of v1.79. Each later version 
 
 - **Event files from GitHub:** when DeceitFix.dll downloads the event files itself, they now come from the GitHub releases of the project. The download is accepted only if it carries the Legacy Project signature for the announced version.
 - The event icon in front of LOOT BOOTH is now always shown during an event: the `eventMenuIcon` setting that hid it was removed.
+
+## v1.81
+
+- **Event files, stricter checks:** they are downloaded only from the GitHub hosts that serve the releases of the project (not from any `githubusercontent.com` address), and a file name that Windows would write under another name (for example ending with a dot, or a short name such as `GAME~1.DLL`) is refused.
+- If the new event files cannot be put in place and the previous ones cannot be put back either, the event levels are no longer offered until the next start (instead of being offered without their files).
