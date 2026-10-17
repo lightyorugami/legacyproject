@@ -29,6 +29,34 @@ This repository hosts the official release files and the update manifest. The ga
 
 > **Requirement: the legacy version of Deceit must be installed**. On the live version, Legacy Project stays inactive and the game starts without it.
 
+Two ways to install Legacy Project. Both give the same result:
+
+- [With the installer](#with-the-installer-recommended): one file to run, recommended for most players.
+- [Manual installation](#manual-installation): you copy the files and set the launch option yourself.
+
+### With the installer (recommended)
+
+0. If it is not already done, in Steam, right-click Deceit → Properties → Betas, and select the Legacy version. Wait for the download to finish.
+1. Download `LegacyProjectInstaller.cmd` from the **latest `installer-…` release** on the [Releases](../../releases) page.
+2. Double-click it. If Windows SmartScreen shows "Windows protected your PC", click **More info → Run anyway**.
+3. Follow the questions in the window, then start Deceit on Steam as usual.
+
+What the installer does:
+
+- finds Deceit in your Steam libraries and checks that it is the legacy version;
+- downloads the latest release, the .NET runtime and the events pack from this repository, and **checks their signature or SHA-256 before installing anything** (the same checks as the game's own updates);
+- sets the launch option `LegacyProject %command%` for you. Steam has to be closed for this, so the installer closes it and starts it again. Your other launch options are kept, and a backup of Steam's settings file is made (`localconfig.vdf.lpbak`).
+
+Run it again at any time to **update**, **repair** (reinstall the latest version) or **uninstall** Legacy Project. Your `config.json` and option files are kept.
+
+It does not download Deceit, only works with Deceit installed through Steam, needs no admin rights and writes no logs.
+
+**Why a `.cmd` file?** For transparency. A `.cmd` file is plain text, not a compiled program: right-click it → **Edit** (or open it in Notepad) and you see the whole code that runs on your PC, nothing hidden. It is a PowerShell script that uses Windows' own built-in PowerShell, so there is nothing else to install. Its SHA-256 is given in the release notes: see [Check a file yourself](#check-a-file-yourself).
+
+### Manual installation
+
+For players who prefer to do everything themselves:
+
 0. If it is not already done, in Steam, right-click Deceit → Properties → Betas, and select the Legacy version. Wait for the download to finish.
 1. Download the zip of the **latest `v…` release** (for example `3.2.7.zip`) from the [Releases](../../releases) page.
 2. Open your Deceit folder: in Steam, right-click Deceit → Manage → Browse local files.
@@ -147,6 +175,7 @@ Signed data: `"LP-UPDATE-1\0"` + bytes 0–47 of the comment + SHA-256 of every 
   ```
 - **VirusTotal.** Search that SHA-256 on [virustotal.com](https://www.virustotal.com), or upload the file.
 - **.NET runtime.** Every DLL in `dotnet.zip` carries Microsoft's digital signature (right-click → Properties → Digital Signatures).
+- **Installer.** `LegacyProjectInstaller.cmd` is not signed (it is the file that checks the others), but it is plain text: read it in Notepad, and compare its SHA-256 with the one in its release notes.
 - **Signature.** Anyone can check it with the public keys above and the layout described in [How the signature is stored](#how-the-signature-is-stored).
 
 ---
@@ -192,6 +221,7 @@ Its full source code is published in [`bootstrapper/`](bootstrapper), with the e
 | `bin\win_x64\LegacyProject\config.json` | Your settings (kept by updates) |
 | `bin\win_x64\LegacyProject\repair.bat` | Reinstalls Legacy Project |
 | `bin\win_x64\LegacyProject\uninstall.bat` | Removes Legacy Project |
+| Steam: `userdata\<account>\config\localconfig.vdf` | Only if you use the installer: it adds the launch option of Deceit there (backup: `localconfig.vdf.lpbak`) |
 
 The logs are written in `Deceit\logbackups` and stay on your PC.
 
@@ -200,7 +230,7 @@ Optional files you can create in `bin\win_x64\LegacyProject\` (kept by updates):
 - `autoupdate.txt`: install updates without the update window
 - `noupdate.txt`: no update check at all
 
-To uninstall, run `bin\win_x64\LegacyProject\uninstall.bat` (or delete `LegacyProject.exe` and the `bin\win_x64\LegacyProject` folder), then remove `LegacyProject %command%` from the Launch Options.
+To uninstall, run the [installer](#with-the-installer-recommended) and choose **Uninstall** (it also removes the launch option), or run `bin\win_x64\LegacyProject\uninstall.bat` (or delete `LegacyProject.exe` and the `bin\win_x64\LegacyProject` folder) and, in these two cases, remove `LegacyProject %command%` from the Launch Options.
 
 ---
 
@@ -229,7 +259,7 @@ Only download Legacy Project from this repository's [Releases](../../releases) p
 
 ## Source code
 
-Legacy Project is not open source, and I do not plan to make it open source. The only exception is the bootstrapper, published in [`bootstrapper/`](bootstrapper) so that anyone can rebuild it and compare it with the released file.
+Legacy Project is not open source, and I do not plan to make it open source. The only exception is the bootstrapper, published in [`bootstrapper/`](bootstrapper) so that anyone can rebuild it and compare it with the released file. The installer is a readable script too: its code is the `.cmd` file itself.
 
 That said, you are welcome to check what the files of Legacy Project do, with any tool you like: decompilers, disassemblers, antivirus scans, VirusTotal, or AI assistants. I have no problem with that.
 
