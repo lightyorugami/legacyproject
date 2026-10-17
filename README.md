@@ -125,7 +125,7 @@ Everything is in `Deceit\bin\win_x64`:
 | `dinput8.dll` | Startup DLL. Deceit loads it at start; it forwards everything to Windows' own `dinput8.dll`, checks for updates, then loads Legacy Project. On any other version of the game, it does nothing. |
 | `LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory |
 | `LegacyProject\PartyServer\` | The party server, run by one of the players |
-| `LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only (never the one installed on your PC) |
+| `LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only |
 | `LegacyProject\events\` | Event files |
 | `LegacyProject\config.json` | Your settings (kept by updates) |
 | `LegacyProject\repair.bat` | Reinstalls Legacy Project |
