@@ -24,6 +24,9 @@ This repository hosts the official release files and the update manifest. The ga
 
 ## Installation
 
+> **Requirement: the legacy version of Deceit must be installed**. On the live version, Legacy Project stays inactive and the game starts without it.
+
+0. If it is not already done, in Steam, right-click Deceit → Properties → Betas, and select the Legacy version. Wait for the download to finish.
 1. Download the zip of the **latest `v…` release** (for example `3.2.7.zip`) from the [Releases](../../releases) page.
 2. Open the `bin\win_x64` folder of your Deceit installation (the folder that contains `Deceit.exe`). In Steam: right-click Deceit → Manage → Browse local files, then open `bin`, then `win_x64`.
 3. Put the **content** of the zip into that folder: `dinput8.dll` and the `LegacyProject` folder must end up **directly next to `Deceit.exe`**. The easiest way: open the zip (double-click), select everything inside, and drag it into `win_x64`.
