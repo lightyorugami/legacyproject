@@ -106,11 +106,8 @@ static bool Start(const std::wstring& exe, const std::wstring& commandLine, cons
 
 static int RunLegacy(const std::wstring& steamCommand) {
     const std::wstring active = Join(g_bin, L"dinput8.dll"), stored = Join(g_ours, L"dinput8.dll");
-    if (!Exists(Join(g_ours, L"DeceitFix.dll"))) {
-        Error(L"Legacy Project is not installed correctly: bin\\win_x64\\LegacyProject\\DeceitFix.dll is missing.\n\n"
-              L"Download the latest release again from the Legacy Project GitHub page.");
-        return 1;
-    }
+    // DeceitFix.dll is not required here: after an interrupted update it may be missing, and it is the startup DLL
+    // that reinstalls it (loader/loader.cpp, "DeceitFix.dll missing, reinstalling"). Only a startup DLL is needed.
     if (Exists(stored)) {
         DWORD err = 0;
         // one left in bin\win_x64 (crash, or an older one): moved aside first, so the newer one can take its place
@@ -121,7 +118,7 @@ static int RunLegacy(const std::wstring& steamCommand) {
         }
     } else if (!Exists(active)) {
         Error(L"Legacy Project is not installed correctly: dinput8.dll is missing from bin\\win_x64\\LegacyProject.\n\n"
-              L"Download the latest release again from the Legacy Project GitHub page.");
+              L"Run the Legacy Project installer (Repair), or download the latest release again from the Legacy Project GitHub page.");
         return 1;
     }                                           // else: already in bin\win_x64 (a crash left it there)
 
