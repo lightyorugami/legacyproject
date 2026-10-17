@@ -16,6 +16,7 @@ This repository hosts the official release files and the update manifest. The ga
 - [Security](#security)
 - [Check a file yourself](#check-a-file-yourself)
 - [What Legacy Project changes on your PC](#what-legacy-project-changes-on-your-pc)
+- [Features of DeceitFix.dll](DeceitFix.md)
 - [Network and privacy](#network-and-privacy)
 - [Antivirus warnings](#antivirus-warnings)
 - [Support](#support)
@@ -31,6 +32,22 @@ This repository hosts the official release files and the update manifest. The ga
 2. Open the `bin\win_x64` folder of your Deceit installation (the folder that contains `Deceit.exe`). In Steam: right-click Deceit → Manage → Browse local files, then open `bin`, then `win_x64`.
 3. Put the **content** of the zip into that folder: `dinput8.dll` and the `LegacyProject` folder must end up **directly next to `Deceit.exe`**. The easiest way: open the zip (double-click), select everything inside, and drag it into `win_x64`.
 4. Start Deceit on Steam as usual.
+
+Your `win_x64` folder must look like this:
+
+```
+Deceit\bin\win_x64\
+├── Deceit.exe              (the game: already there)
+├── Game.dll                (the game: already there)
+├── ...                     (other game files: already there)
+├── dinput8.dll             ← Legacy Project
+└── LegacyProject\          ← Legacy Project
+    ├── DeceitFix.dll
+    ├── LegacyProject.exe
+    ├── PartyServer\
+    ├── repair.bat
+    └── ...
+```
 
 On first launch, the game downloads by itself what it still needs: the .NET runtime (`dotnet-3.1.32` release) and the event files (`events-…` releases). You do not need to download these manually.
 
@@ -123,9 +140,9 @@ Everything is in `Deceit\bin\win_x64`:
 | File or folder | Role |
 |---|---|
 | `dinput8.dll` | Startup DLL. Deceit loads it at start; it forwards everything to Windows' own `dinput8.dll`, checks for updates, then loads Legacy Project. On any other version of the game, it does nothing. |
-| `LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory |
+| `LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory: see the [full list of features](DeceitFix.md) |
 | `LegacyProject\PartyServer\` | The party server, run by one of the players |
-| `LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only |
+| `LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only (never the one installed on your PC) |
 | `LegacyProject\events\` | Event files |
 | `LegacyProject\config.json` | Your settings (kept by updates) |
 | `LegacyProject\repair.bat` | Reinstalls Legacy Project |
@@ -145,10 +162,10 @@ To uninstall, run `LegacyProject\uninstall.bat`, or delete `dinput8.dll` and the
 
 ## Network and privacy
 
-- **Steam relays only.** Players connect to each other, and to the player who hosts the PartyServer, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding or VPN is needed.
+- **Steam relays only.** Players connect to each other, and to the player who hosts the PartyServer, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding or VPN is needed. Curious about how it works? See Valve's [Steam Datagram Relay documentation](https://partner.steamgames.com/doc/features/multiplayer/steamdatagramrelay).
 - **Protection against a modified host.** The host is a player like any other. What a host's PartyServer sends to your game is filtered by your own Legacy Project: it cannot make your game connect to an address of its choice.
 - **Stored data.** Your profile (progression, cosmetics, friends, settings) is stored in the project's database under your Steam ID. Players' IP addresses are not kept there.
-- **Diagnostics.** A diagnostic report (logs) is sent only when you choose to send one (Ctrl+Shift+F9 in game). Only the most recent reports are kept for each player.
+- **Diagnostics.** A diagnostic report (logs) is sent when you press Ctrl+Shift+F9 in game. To help fix bugs, two kinds of logs are also sent automatically: the crash file of a game that crashed (at the next launch), and the log of the match server when you hosted a match. Only the most recent reports are kept for each player.
 
 ---
 
