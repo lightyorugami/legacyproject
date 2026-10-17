@@ -15,10 +15,12 @@ This repository hosts the official release files and the update manifest. The ga
 - [How updates work](#how-updates-work)
 - [Security](#security)
 - [Check a file yourself](#check-a-file-yourself)
+- [The bootstrapper (LegacyProject.exe)](#the-bootstrapper-legacyprojectexe)
 - [What Legacy Project changes on your PC](#what-legacy-project-changes-on-your-pc)
 - [Features of DeceitFix.dll](DeceitFix.md)
 - [Network and privacy](#network-and-privacy)
 - [Antivirus warnings](#antivirus-warnings)
+- [Source code](#source-code)
 - [Support](#support)
 
 ---
@@ -29,27 +31,43 @@ This repository hosts the official release files and the update manifest. The ga
 
 0. If it is not already done, in Steam, right-click Deceit → Properties → Betas, and select the Legacy version. Wait for the download to finish.
 1. Download the zip of the **latest `v…` release** (for example `3.2.7.zip`) from the [Releases](../../releases) page.
-2. Open the `bin\win_x64` folder of your Deceit installation (the folder that contains `Deceit.exe`). In Steam: right-click Deceit → Manage → Browse local files, then open `bin`, then `win_x64`.
-3. Put the **content** of the zip into that folder: `dinput8.dll` and the `LegacyProject` folder must end up **directly next to `Deceit.exe`**. The easiest way: open the zip (double-click), select everything inside, and drag it into `win_x64`.
-4. Start Deceit on Steam as usual.
+2. Open your Deceit folder: in Steam, right-click Deceit → Manage → Browse local files.
+3. Put the **content** of the zip into that folder: open the zip (double-click), select everything inside (`LegacyProject.exe` and the `bin` folder), and drag it into the Deceit folder. Windows merges the `bin` folder with the existing one.
+4. In Steam, right-click Deceit → Properties → General → **Launch Options**, and type:
+   ```
+   LegacyProject %command%
+   ```
+   This launch option is what turns Legacy Project on: without it, Steam starts the original game.
+5. Start Deceit on Steam as usual.
 
-Your `win_x64` folder must look like this:
+Your Deceit folder must look like this:
 
 ```
-Deceit\bin\win_x64\
-├── Deceit.exe              (the game: already there)
-├── Game.dll                (the game: already there)
-├── ...                     (other game files: already there)
-├── dinput8.dll             ← Legacy Project
-└── LegacyProject\          ← Legacy Project
-    ├── DeceitFix.dll
-    ├── LegacyProject.exe
-    ├── PartyServer\
-    ├── repair.bat
-    └── ...
+Deceit\
+├── LegacyProject.exe           ← Legacy Project
+├── ...                         (game files: already there)
+└── bin\
+    └── win_x64\
+        ├── Deceit.exe          (the game: already there)
+        ├── ...                 (other game files: already there)
+        └── LegacyProject\      ← Legacy Project
+            ├── dinput8.dll
+            ├── DeceitFix.dll
+            ├── PartyServer\
+            ├── repair.bat
+            └── ...
 ```
 
 On first launch, the game downloads by itself what it still needs: the .NET runtime (`dotnet-3.1.32` release) and the event files (`events-…` releases). You do not need to download these manually.
+
+### Turn Legacy Project on or off
+
+The launch option decides, nothing else:
+
+- **On:** `LegacyProject %command%` in the Launch Options of Deceit.
+- **Off:** remove it from the Launch Options. Steam starts the original game, without Legacy Project. Nothing needs to be uninstalled: add the launch option again to play with Legacy Project.
+
+How it works: see [The bootstrapper](#the-bootstrapper-legacyprojectexe).
 
 ---
 
@@ -57,7 +75,7 @@ On first launch, the game downloads by itself what it still needs: the .NET runt
 
 | Release | File | Content | How the game checks it |
 |---|---|---|---|
-| `v<version>` (e.g. `v3.2.7`) | `<version>.zip` | Legacy Project: startup DLL, `LegacyProject\` folder (fixes, PartyServer, tools) | Legacy Project signature, for that exact version |
+| `v<version>` (e.g. `v3.2.7`) | `<version>.zip` | Legacy Project: `LegacyProject.exe`, and the `bin\win_x64\LegacyProject\` folder (startup DLL, fixes, PartyServer, tools) | Legacy Project signature, for that exact version |
 | `events-<N>` (e.g. `events-2`) | `events_<N>.zip` | Seasonal content (maps and menus): `.pak` data files only, no executable code | Legacy Project signature of the zip, plus a signature on every `.pak` |
 | `dotnet-3.1.32` | `dotnet.zip` | Official Microsoft .NET Core 3.1 runtime (x64), unmodified | Its SHA-256, built into the game's startup DLL |
 
@@ -133,36 +151,62 @@ Signed data: `"LP-UPDATE-1\0"` + bytes 0–47 of the comment + SHA-256 of every 
 
 ---
 
-## What Legacy Project changes on your PC
+## The bootstrapper (LegacyProject.exe)
 
-Everything is in `Deceit\bin\win_x64`:
+`LegacyProject.exe`, in the Deceit folder, is the small program that the launch option `LegacyProject %command%` makes Steam start instead of the game. Each time Deceit is started, it:
+
+1. checks the version of the game (`bin\win_x64\Game.dll`);
+2. **legacy version:** moves `bin\win_x64\LegacyProject\dinput8.dll` next to `Deceit.exe`, then starts `bin\win_x64\Deceit.exe` with Steam's own arguments, and a marker in its environment that tells Legacy Project it was started this way;
+3. **any other version:** makes sure our `dinput8.dll` is not next to `Deceit.exe`, then starts Steam's command unchanged;
+4. closes right away. It never stays in the background.
+
+When the game has ended, Legacy Project moves `dinput8.dll` back into `bin\win_x64\LegacyProject`. A game started without the launch option never turns Legacy Project on: if a crash left `dinput8.dll` next to `Deceit.exe`, it does nothing and moves itself back.
+
+The bootstrapper makes no network connection, writes no log, needs no administrator rights and modifies no file of the game: it only moves our own `dinput8.dll`.
+
+### Check it yourself
+
+Its full source code is published in [`bootstrapper/`](bootstrapper), with the exact build script (`build.sh`) and build environment (`Dockerfile`: Ubuntu 24.04, MinGW-w64 GCC 13.2.0). The build is reproducible: the same source and the same compiler give the same file, byte for byte. To check that the `LegacyProject.exe` of a release is really built from this source:
+
+1. Build it yourself, for example with Docker:
+   ```
+   cd bootstrapper
+   docker build -t lp-bootstrapper .
+   docker run --rm -v "$PWD:/src" lp-bootstrapper
+   ```
+   (or in Ubuntu 24.04 / WSL: `sudo apt install g++-mingw-w64-x86-64-win32` then `sh build.sh`). It prints the SHA-256 of the file it built.
+2. Compare it with the SHA-256 of the `LegacyProject.exe` from the release zip (on Windows: `certutil -hashfile LegacyProject.exe SHA256`). The SHA-256 of each release's `LegacyProject.exe` is also written in its release notes.
+
+---
+
+## What Legacy Project changes on your PC
 
 | File or folder | Role |
 |---|---|
-| `dinput8.dll` | Startup DLL. Deceit loads it at start; it forwards everything to Windows' own `dinput8.dll`, checks for updates, then loads Legacy Project. On any other version of the game, it does nothing. |
-| `LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory: see the [full list of features](DeceitFix.md) |
-| `LegacyProject\PartyServer\` | The party server, run by one of the players |
-| `LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only (never the one installed on your PC) |
-| `LegacyProject\events\` | Event files |
-| `LegacyProject\config.json` | Your settings (kept by updates) |
-| `LegacyProject\repair.bat` | Reinstalls Legacy Project |
-| `LegacyProject\uninstall.bat` | Removes Legacy Project |
+| `Deceit\LegacyProject.exe` | The [bootstrapper](#the-bootstrapper-legacyprojectexe): started by Steam through the launch option, puts `dinput8.dll` in place, starts the game, then closes. |
+| `bin\win_x64\LegacyProject\dinput8.dll` | Startup DLL. Next to `Deceit.exe` only while the game runs. The game loads it at start; it forwards everything to Windows' own `dinput8.dll`, checks for updates, then loads Legacy Project. In a game not started through the launch option, or on another version of the game, it does nothing. |
+| `bin\win_x64\LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory: see the [full list of features](DeceitFix.md) |
+| `bin\win_x64\LegacyProject\PartyServer\` | The party server, run by one of the players |
+| `bin\win_x64\LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only (never the one installed on your PC) |
+| `bin\win_x64\LegacyProject\events\` | Event files |
+| `bin\win_x64\LegacyProject\config.json` | Your settings (kept by updates) |
+| `bin\win_x64\LegacyProject\repair.bat` | Reinstalls Legacy Project |
+| `bin\win_x64\LegacyProject\uninstall.bat` | Removes Legacy Project |
 
 The logs are written in `Deceit\logbackups` and stay on your PC.
 
-Optional files you can create in `LegacyProject\` (kept by updates):
+Optional files you can create in `bin\win_x64\LegacyProject\` (kept by updates):
 
 - `autoupdate.txt`: install updates without the update window
 - `noupdate.txt`: no update check at all
-- `novpncheck.txt`: skip the VPN check
 
-To uninstall, run `LegacyProject\uninstall.bat`, or delete `dinput8.dll` and the `LegacyProject` folder.
+To uninstall, run `bin\win_x64\LegacyProject\uninstall.bat` (or delete `LegacyProject.exe` and the `bin\win_x64\LegacyProject` folder), then remove `LegacyProject %command%` from the Launch Options.
 
 ---
 
 ## Network and privacy
 
-- **Steam relays only.** Players connect to each other, and to the player who hosts the PartyServer, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding or VPN is needed. Curious about how it works? See Valve's [Steam Datagram Relay documentation](https://partner.steamgames.com/doc/features/multiplayer/steamdatagramrelay).
+- **Steam relays only.** Players connect to each other, and to the player who hosts the PartyServer, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding is needed, and a VPN does not get in the way. Curious about how it works? See Valve's [Steam Datagram Relay documentation](https://partner.steamgames.com/doc/features/multiplayer/steamdatagramrelay).
 - **Protection against a modified host.** The host is a player like any other. What a host's PartyServer sends to your game is filtered by your own Legacy Project: it cannot make your game connect to an address of its choice.
 - **Stored data.** Your profile (progression, cosmetics, friends, settings) is stored in the project's database under your Steam ID. Players' IP addresses are not kept there.
 - **Diagnostics.** A diagnostic report (logs) is sent when you press Ctrl+Shift+F9 in game. To help fix bugs, two kinds of logs are also sent automatically: the crash file of a game that crashed (at the next launch), and the log of the match server when you hosted a match. Only the most recent reports are kept for each player.
@@ -180,6 +224,14 @@ Some antivirus products may flag Legacy Project, usually as a generic or "heuris
 Before trusting a file, check that its SHA-256 matches the one shown on this page's releases, then look it up on VirusTotal. If your antivirus flags a file from an official release, you can report it to the antivirus vendor as a false positive.
 
 Only download Legacy Project from this repository's [Releases](../../releases) page. Copies posted anywhere else are not supported.
+
+---
+
+## Source code
+
+Legacy Project is not open source, and I do not plan to make it open source. The only exception is the bootstrapper, published in [`bootstrapper/`](bootstrapper) so that anyone can rebuild it and compare it with the released file.
+
+That said, you are welcome to check what the files of Legacy Project do, with any tool you like: decompilers, disassemblers, antivirus scans, VirusTotal, or AI assistants. I have no problem with that.
 
 ---
 
