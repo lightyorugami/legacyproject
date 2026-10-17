@@ -182,14 +182,24 @@ Signed data: `"LP-UPDATE-1\0"` + bytes 0–47 of the comment + SHA-256 of every 
 
 ## The bootstrapper (LegacyProject.exe)
 
-`LegacyProject.exe`, in the Deceit folder, is the small program that the launch option `LegacyProject %command%` makes Steam start instead of the game. Each time Deceit is started, it:
+`LegacyProject.exe`, in the Deceit folder, is the small program that the launch option `LegacyProject %command%` makes Steam start instead of the game. Its only job is to put the startup DLL (`dinput8.dll`) in place and start the game.
 
-1. checks the version of the game (`bin\win_x64\Game.dll`);
-2. **legacy version:** moves `bin\win_x64\LegacyProject\dinput8.dll` next to `Deceit.exe`, then starts `bin\win_x64\Deceit.exe` with Steam's own arguments, and a marker in its environment that tells Legacy Project it was started this way;
-3. **any other version:** makes sure our `dinput8.dll` is not next to `Deceit.exe`, then starts Steam's command unchanged;
-4. closes right away. It never stays in the background.
+**Where `dinput8.dll` is kept.** When the game is not running, `dinput8.dll` stays in `bin\win_x64\LegacyProject`, where the game never loads it. It is next to `Deceit.exe` only while a game started through the launch option is running.
 
-When the game has ended, Legacy Project moves `dinput8.dll` back into `bin\win_x64\LegacyProject`. A game started without the launch option never turns Legacy Project on: if a crash left `dinput8.dll` next to `Deceit.exe`, it does nothing and moves itself back.
+**What happens when you start Deceit:**
+
+1. Steam starts `LegacyProject.exe`, which checks the version of the game (`bin\win_x64\Game.dll`).
+2. **Legacy version:** it moves `dinput8.dll` next to `Deceit.exe`, then starts `bin\win_x64\Deceit.exe` with Steam's own arguments and a marker in its environment that tells Legacy Project it was started this way.
+   **Any other version (live):** it makes sure our `dinput8.dll` is not next to `Deceit.exe`, then starts Steam's command unchanged.
+3. It closes right away. It never stays in the background and never waits for the game.
+
+**When the game ends.** Since the bootstrapper is already closed, it is the PartyServer, which Legacy Project runs alongside the game, that sees the game end and moves `dinput8.dll` back into `bin\win_x64\LegacyProject`. This works however the game ends, even if it crashes while closing.
+
+**If `dinput8.dll` was left next to `Deceit.exe`** (PC turned off during a game, for example), nothing breaks:
+
+- a game started **without** the launch option does not turn Legacy Project on: `dinput8.dll` sees the marker is missing, does nothing, and moves itself back;
+- the next start **with** the launch option simply uses it, and the bootstrapper sorts it out (an older copy is moved aside so that a newer one installed by an update takes its place);
+- on the live version, the bootstrapper moves it back before starting the game.
 
 The bootstrapper makes no network connection, writes no log, needs no administrator rights and modifies no file of the game: it only moves our own `dinput8.dll`.
 
