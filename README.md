@@ -30,7 +30,7 @@ This repository hosts the official release files and the update manifest. The ga
 1. Download the zip of the **latest `v…` release** (for example `3.2.7.zip`) from the [Releases](../../releases) page.
 2. Open the `bin\win_x64` folder of your Deceit installation (the folder that contains `Deceit.exe`). In Steam: right-click Deceit → Manage → Browse local files, then open `bin`, then `win_x64`.
 3. Put the **content** of the zip into that folder: `dinput8.dll` and the `LegacyProject` folder must end up **directly next to `Deceit.exe`**. The easiest way: open the zip (double-click), select everything inside, and drag it into `win_x64`.
-4. Start Deceit as usual.
+4. Start Deceit on Steam as usual.
 
 On first launch, the game downloads by itself what it still needs: the .NET runtime (`dotnet-3.1.32` release) and the event files (`events-…` releases). You do not need to download these manually.
 
