@@ -1,6 +1,6 @@
 # DeceitFix.dll: features
 
-Current version: **v1.79**
+Current version: **v1.80**
 
 `LegacyProject\DeceitFix.dll` holds the fixes and features of Legacy Project. It is loaded by the startup DLL (`dinput8.dll`) when the game starts and works **in memory only**: no file of the game is modified on disk. Before patching anything, it checks that the game files are exactly the legacy version (`Game.dll` 5.2.9): on any other version it changes nothing.
 
@@ -35,7 +35,7 @@ The first section lists everything the DLL does as of v1.79. Each later version 
 - **Double XP weekend:** the game's own "+100% WEEK-END EXP" banner, with the time left.
 - **Event icon** in front of LOOT BOOTH during an event (can be turned off with `"eventMenuIcon": false` in `LegacyProject\config.json`).
 - **Signed event files:** every event `.pak` carries the Legacy Project signature and is checked before the game opens it. A modified or unknown pak is refused.
-- **Automatic download** of the event files from the GitHub releases, with their signature checked (normally done by the startup DLL; DeceitFix.dll does it itself when the game was started by an older startup DLL).
+- **Automatic download** of the event files (normally done by the startup DLL; DeceitFix.dll does it itself when the game was started by an older startup DLL).
 
 ### Diary pages
 
@@ -71,3 +71,10 @@ The first section lists everything the DLL does as of v1.79. Each later version 
 - **Diagnostic report:** **Ctrl+Shift+F9** in game sends a report (logs) to the project, only when you choose to. A small window shows the progress. The diagnostic lines are kept in memory until then.
 - **Crash files:** when the game crashes, a crash file with the call stack is written in `Deceit\logbackups`. It is sent automatically at the next launch, so that the crash can be fixed.
 - **Profile protection:** the DLL gives the PartyServer a Steam proof that you are really playing (a Steam ticket made only for this purpose). The project's database uses it to undo any change made to the profile of a player who is not playing.
+
+---
+
+## v1.80
+
+- **Event files from GitHub:** when DeceitFix.dll downloads the event files itself, they now come from the GitHub releases of the project. The download is accepted only if it carries the Legacy Project signature for the announced version.
+- The event icon in front of LOOT BOOTH is now always shown during an event: the `eventMenuIcon` setting that hid it was removed.
