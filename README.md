@@ -29,6 +29,8 @@ This repository hosts the official release files and the update manifest. The ga
 
 > **Requirement: the legacy version of Deceit must be installed**. On the live version, Legacy Project stays inactive and the game starts without it.
 
+> **Coming from version 3.2.6 or older?** It cannot update itself to version 4: install Legacy Project again with the installer below. It replaces your old installation and keeps your `config.json`.
+
 Two ways to install Legacy Project. Both give the same result:
 
 - [With the installer](#with-the-installer-recommended): one file to run, recommended for most players.
@@ -44,7 +46,7 @@ Two ways to install Legacy Project. Both give the same result:
 What the installer does:
 
 - finds Deceit in your Steam libraries and checks that it is the legacy version;
-- downloads the latest release, the .NET runtime and the events pack from this repository, and **checks their signature or SHA-256 before installing anything** (the same checks as the game's own updates);
+- downloads the latest release, the .NET runtime and the assets pack from this repository, and **checks their signature or SHA-256 before installing anything** (the same checks as the game's own updates);
 - sets the launch option `LegacyProject %command%` for you. Steam has to be closed for this, so the installer closes it and starts it again. Your other launch options are kept, and a backup of Steam's settings file is made (`localconfig.vdf.lpbak`).
 
 Run it again at any time to **update**, **repair** (reinstall the latest version) or **uninstall** Legacy Project. Your `config.json` and option files are kept.
@@ -58,7 +60,7 @@ It does not download Deceit, only works with Deceit installed through Steam, nee
 For players who prefer to do everything themselves:
 
 0. If it is not already done, in Steam, right-click Deceit → Properties → Betas, and select the Legacy version. Wait for the download to finish.
-1. Download the zip of the **latest `v…` release** (for example `3.2.7.zip`) from the [Releases](../../releases) page.
+1. Download the zip of the **latest `v…` release** (for example `4.0.0.zip`) from the [Releases](../../releases) page.
 2. Open your Deceit folder: in Steam, right-click Deceit → Manage → Browse local files.
 3. Put the **content** of the zip into that folder: open the zip (double-click), select everything inside (`LegacyProject.exe` and the `bin` folder), and drag it into the Deceit folder. Windows merges the `bin` folder with the existing one.
 4. In Steam, right-click Deceit → Properties → General → **Launch Options**, and type:
@@ -86,7 +88,9 @@ Deceit\
             └── ...
 ```
 
-On first launch, the game downloads by itself what it still needs: the .NET runtime (`dotnet-3.1.32` release) and the event files (`events-…` releases). You do not need to download these manually.
+On first launch, the game downloads by itself what it still needs: the .NET runtime (`dotnet-3.1.32` release) and the Legacy Project assets (`assets-…` releases; a window shows the progress of the download). You do not need to download these manually.
+
+If you downloaded the zip with your browser, Windows SmartScreen may show "Windows protected your PC" the first time `LegacyProject.exe` starts: click **More info → Run anyway**. This does not happen with the installer.
 
 ### Turn Legacy Project on or off
 
@@ -103,11 +107,12 @@ How it works: see [The bootstrapper](#the-bootstrapper-legacyprojectexe).
 
 | Release | File | Content | How the game checks it |
 |---|---|---|---|
-| `v<version>` (e.g. `v3.2.7`) | `<version>.zip` | Legacy Project: `LegacyProject.exe`, and the `bin\win_x64\LegacyProject\` folder (startup DLL, fixes, PartyServer, tools) | Legacy Project signature, for that exact version |
-| `events-<N>` (e.g. `events-2`) | `events_<N>.zip` | Seasonal content (maps and menus): `.pak` data files only, no executable code | Legacy Project signature of the zip, plus a signature on every `.pak` |
+| `v<version>` (e.g. `v4.0.0`) | `<version>.zip` | Legacy Project: `LegacyProject.exe`, and the `bin\win_x64\LegacyProject\` folder (startup DLL, fixes, Legacy Project agent, tools) | Legacy Project signature, for that exact version |
+| `assets-<N>` (e.g. `assets-1`) | `assets_<N>.zip` | Legacy Project assets, for now the seasonal content (maps and menus of the events): data files only (`.pak`), no executable code | Legacy Project signature of the zip, for that exact version, plus a signature on every `.pak` (ours, or the original developers' one) |
 | `dotnet-3.1.32` | `dotnet.zip` | Official Microsoft .NET Core 3.1 runtime (x64), unmodified | Its SHA-256, built into the game's startup DLL |
+| `installer-<version>` | `LegacyProjectInstaller.cmd` | The [installer](#with-the-installer-recommended) | Its SHA-256 is given in its release notes |
 
-`lp_update_manifest.txt` (in this branch) only announces the current versions, for example `3.2.7_e2` (package 3.2.7, events pack 2).
+`lp_update_manifest.txt` (in this branch) only announces the current versions, for example `4.0.0_a1` (package 4.0.0, assets pack 1).
 
 All releases are **immutable**: once published, their files and tags can never be changed or replaced, not even by the project owner.
 
@@ -125,7 +130,7 @@ At each launch, Legacy Project reads `lp_update_manifest.txt`. When a new versio
 
 The **Always install updates automatically** box skips this window for future updates. To get the window back, delete `LegacyProject\autoupdate.txt`.
 
-The event files and the .NET runtime are data or Microsoft files, checked the same way, and are installed without asking.
+The assets and the .NET runtime are data or Microsoft files, checked the same way, and are installed without asking. A small window with a progress bar shows the download of the assets.
 
 ---
 
@@ -133,11 +138,12 @@ The event files and the .NET runtime are data or Microsoft files, checked the sa
 
 Legacy Project only installs files that were made and signed by the project:
 
-- **Signed updates.** Every update package and events pack is signed with a Legacy Project private key (ECDSA P-256). The signature covers every byte of the zip **and** its version. The game checks it before reading anything from the zip. A modified file, a file signed by someone else, or an older signed version given in place of the announced one is refused, and nothing is touched.
+- **Signed updates.** Every update package and assets pack is signed with a Legacy Project private key (ECDSA P-256). The signature covers every byte of the zip **and** its version. The game checks it before reading anything from the zip. A modified file, a file signed by someone else, or an older signed version given in place of the announced one is refused, and nothing is touched.
 - **The key is not on GitHub.** The private keys are kept offline, protected by a passphrase, with a backup key stored separately. Even someone who took over this GitHub account, the manifest or any download link could not get the game to install their own files.
-- **GitHub only.** Downloads are accepted only over HTTPS from GitHub (`github.com`, `api.github.com`, `*.githubusercontent.com`), checked again after redirections.
+- **GitHub only.** Downloads are accepted only over HTTPS from the GitHub hosts that serve this repository and its releases (`github.com`, `api.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com`), checked again after redirections.
 - **Immutable releases.** A published file can never be swapped afterwards.
 - **No file of the game is modified.** Legacy Project works in memory while the game runs. The game files on disk stay exactly as Steam installed them.
+- **No database access from your PC.** Your game only talks to the Legacy Project server: no database password or key is shipped with Legacy Project (see [Network and privacy](#network-and-privacy)).
 - **Repair tool.** `LegacyProject\repair.bat` reinstalls Legacy Project from the same releases, with the same checks.
 
 Public keys of the update signatures (not secret; built into the startup DLL):
@@ -156,7 +162,7 @@ The signature sits in the comment at the end of the zip (112 bytes). The zip sta
 | Bytes | Content |
 |---|---|
 | 0–7 | `LPUPD001` |
-| 8 | `P` (package) or `E` (events pack) |
+| 8 | `P` (package) or `A` (assets pack) |
 | 9 | key: `0` main, `1` backup |
 | 10 | length of the version |
 | 11–42 | version (ASCII, zero padded) |
@@ -171,7 +177,7 @@ Signed data: `"LP-UPDATE-1\0"` + bytes 0–47 of the comment + SHA-256 of every 
 
 - **SHA-256.** GitHub shows the SHA-256 of every release file next to it. On Windows:
   ```
-  certutil -hashfile 3.2.7.zip SHA256
+  certutil -hashfile 4.0.0.zip SHA256
   ```
 - **VirusTotal.** Search that SHA-256 on [virustotal.com](https://www.virustotal.com), or upload the file.
 - **.NET runtime.** Every DLL in `dotnet.zip` carries Microsoft's digital signature (right-click → Properties → Digital Signatures).
@@ -193,7 +199,7 @@ Signed data: `"LP-UPDATE-1\0"` + bytes 0–47 of the comment + SHA-256 of every 
    **Any other version (live):** it makes sure our `dinput8.dll` is not next to `Deceit.exe`, then starts Steam's command unchanged.
 3. It closes right away. It never stays in the background and never waits for the game.
 
-**When the game ends.** Since the bootstrapper is already closed, it is the PartyServer, which Legacy Project runs alongside the game, that sees the game end and moves `dinput8.dll` back into `bin\win_x64\LegacyProject`. This works however the game ends, even if it crashes while closing.
+**When the game ends.** Since the bootstrapper is already closed, it is the Legacy Project agent (the `PartyServer` folder), which runs alongside the game, that sees the game end and moves `dinput8.dll` back into `bin\win_x64\LegacyProject`. This works however the game ends, even if it crashes while closing.
 
 **If `dinput8.dll` was left next to `Deceit.exe`** (PC turned off during a game, for example), nothing breaks:
 
@@ -225,15 +231,15 @@ Its full source code is published in [`bootstrapper/`](bootstrapper), with the e
 | `Deceit\LegacyProject.exe` | The [bootstrapper](#the-bootstrapper-legacyprojectexe): started by Steam through the launch option, puts `dinput8.dll` in place, starts the game, then closes. |
 | `bin\win_x64\LegacyProject\dinput8.dll` | Startup DLL. Next to `Deceit.exe` only while the game runs. The game loads it at start; it forwards everything to Windows' own `dinput8.dll`, checks for updates, then loads Legacy Project. In a game not started through the launch option, or on another version of the game, it does nothing. |
 | `bin\win_x64\LegacyProject\DeceitFix.dll` | The game fixes and features, applied in memory: see the [full list of features](DeceitFix.md) |
-| `bin\win_x64\LegacyProject\PartyServer\` | The party server, run by one of the players |
-| `bin\win_x64\LegacyProject\dotnet\` | The .NET runtime used by the PartyServer only (never the one installed on your PC) |
-| `bin\win_x64\LegacyProject\events\` | Event files |
+| `bin\win_x64\LegacyProject\PartyServer\` | The Legacy Project agent: it connects your game to the Legacy Project server and links the players of a match through the Steam relays. It is not a server for other players. |
+| `bin\win_x64\LegacyProject\dotnet\` | The .NET runtime used by the agent only (never the one installed on your PC) |
+| `bin\win_x64\LegacyProject\Assets\` | Legacy Project assets (`events\`: the event files), downloaded separately |
 | `bin\win_x64\LegacyProject\config.json` | Your settings (kept by updates) |
 | `bin\win_x64\LegacyProject\repair.bat` | Reinstalls Legacy Project |
 | `bin\win_x64\LegacyProject\uninstall.bat` | Removes Legacy Project |
 | Steam: `userdata\<account>\config\localconfig.vdf` | Only if you use the installer: it adds the launch option of Deceit there (backup: `localconfig.vdf.lpbak`) |
 
-The logs are written in `Deceit\logbackups` and stay on your PC.
+The logs are written in `Deceit\logbackups` and stay on your PC (except the ones described in [Diagnostics](#network-and-privacy)).
 
 Optional files you can create in `bin\win_x64\LegacyProject\` (kept by updates):
 
@@ -246,10 +252,11 @@ To uninstall, run the [installer](#with-the-installer-recommended) and choose **
 
 ## Network and privacy
 
-- **Steam relays only.** Players connect to each other, and to the player who hosts the PartyServer, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding is needed, and a VPN does not get in the way. Curious about how it works? See Valve's [Steam Datagram Relay documentation](https://partner.steamgames.com/doc/features/multiplayer/steamdatagramrelay).
-- **Protection against a modified host.** The host is a player like any other. What a host's PartyServer sends to your game is filtered by your own Legacy Project: it cannot make your game connect to an address of its choice.
-- **Stored data.** Your profile (progression, cosmetics, friends, settings) is stored in the project's database under your Steam ID. Players' IP addresses are not kept there.
-- **Diagnostics.** A diagnostic report (logs) is sent when you press Ctrl+Shift+F9 in game. To help fix bugs, two kinds of logs are also sent automatically: the crash file of a game that crashed (at the next launch), and the log of the match server when you hosted a match. Only the most recent reports are kept for each player.
+- **One Legacy Project server.** Friends, parties, matchmaking, profiles and leaderboards are handled by a dedicated Legacy Project server, always online. No player's PC acts as a server for the others any more. Your game reaches it through the Legacy Project agent, over an encrypted connection (TLS, port 443), and checks the key of the server: a fake server is refused. Like any server, it sees the IP address your connection comes from; it does not store it in the database.
+- **Steam relays between players.** During a match, players connect to each other, and to the player who hosts the match, through Valve's Steam Datagram Relay network, addressed by Steam account and never by IP address. Your IP address is not sent to other players, including the host, and no direct connection to your PC is opened. No port forwarding is needed, and a VPN does not get in the way. Curious about how it works? See Valve's [Steam Datagram Relay documentation](https://partner.steamgames.com/doc/features/multiplayer/steamdatagramrelay).
+- **Protection against a modified host.** The player who hosts a match is a player like any other. Your game only reaches him through the Steam relays, by Steam account: he cannot make your game connect to an address of his choice.
+- **Stored data.** Your profile (progression, cosmetics, friends, settings) is stored in the project's database under your Steam ID. Players' IP addresses are not kept there. To check ranked results, a short summary of each match (result, XP, marks, Elo) is kept for 3 days.
+- **Diagnostics.** A diagnostic report (logs) is sent to the Legacy Project server when you press Ctrl+Shift+F9 in game. To help fix bugs, two kinds of logs are also sent automatically: the crash file of a game that crashed (at the next launch), and the log of the match server when you hosted a match. Only the most recent reports are kept for each player.
 
 ---
 
