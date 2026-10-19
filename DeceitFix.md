@@ -1,6 +1,6 @@
 # DeceitFix.dll: features
 
-Current version: **v1.81**
+Current version: **v1.84**
 
 `LegacyProject\DeceitFix.dll` holds the fixes and features of Legacy Project. It is loaded by the startup DLL (`dinput8.dll`) when the game starts and works **in memory only**: no file of the game is modified on disk. Before patching anything, it checks that the game files are exactly the legacy version (`Game.dll` 5.2.9): on any other version it changes nothing.
 
@@ -83,3 +83,18 @@ The first section lists everything the DLL does as of v1.79. Each later version 
 
 - **Event files, stricter checks:** they are downloaded only from the GitHub hosts that serve the releases of the project (not from any `githubusercontent.com` address), and a file name that Windows would write under another name (for example ending with a dot, or a short name such as `GAME~1.DLL`) is refused.
 - If the new event files cannot be put in place and the previous ones cannot be put back either, the event levels are no longer offered until the next start (instead of being offered without their files).
+
+## v1.82
+
+- **Recent players show their real status:** in the player list of the menu, the "Recent" group is now updated when a recent player's status changes (online, in game, offline), instead of keeping the status he had at the end of the match. Only your friends can see that a player is in the queue; everybody else sees him as online.
+
+## v1.83
+
+- **Your contacts stay in Contacts:** at the start of the game, your friends were sometimes shown under "Recent players" until the end of your next match. Only the recent players are refreshed now.
+- **Halloween maps are back:** the Halloween versions of the maps and of the main menu are used again during the event (they are the original files of the game, which were refused since the event files became signed).
+- **Event shown from the first start:** when an event has just begun, the first start of the game now shows it right away (main menu, loading screens, maps) instead of only from the next start.
+
+## v1.84
+
+- **Assets pack:** the event files become the Legacy Project assets, downloaded into `LegacyProject\Assets` (the events are in `Assets\events`; other assets can be added there later).
+- **Download progress:** while the assets are downloaded, a small window with a progress bar shows how much is done, the speed and the time left (useful on a slow connection).
